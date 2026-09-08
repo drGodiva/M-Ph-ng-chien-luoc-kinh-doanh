@@ -1,12 +1,23 @@
 import streamlit as st
 import pandas as pd
+import os
 
+# Cấu hình trang
 st.set_page_config(
-    page_title="Mô Phỏng Sơ Đồ Bậc Thang Ly Khai & Nhóm TAB Herbalife",
-    page_icon="👑",
+    page_title="Mô Phỏng Kế Hoạch Kinh Doanh Herbalife",
+    page_icon="🌿",
     layout="wide"
 )
 
+# Đường dẫn thư mục tài nguyên assets
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+ASSETS_DIR = os.path.join(CURRENT_DIR, "assets")
+
+logo_path = os.path.join(ASSETS_DIR, "MBAlogo.png")
+card_path = os.path.join(ASSETS_DIR, "founderMBA.jpg")
+qr_path = os.path.join(ASSETS_DIR, "qr_ngan_hang.png")
+
+# Tùy biến giao diện (Màu chủ đạo Emerald Green & Metallic Gold)
 st.markdown("""
     <style>
     .main-title { color: #004D40; text-align: center; font-weight: 800; font-size: 26px; }
@@ -14,21 +25,23 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<div class='main-title'>HỆ THỐNG MÔ PHỎNG CHIẾN LƯỢC BẬC THANG LY KHAI & NHÓM TAB HERBALIFE</div>", unsafe_allow_html=True)
-st.markdown("<div class='sub-title'>Tích hợp đầy đủ: Hoa hồng sỉ (8% - 25%), Bản quyền RO (1% - 5%) & Hoa hồng doanh số TAB (2% - 7%)</div>", unsafe_allow_html=True)
+# --- 1. GẮN LOGO VÀO THANH BÊN (SIDEBAR) ---
+if os.path.exists(logo_path):
+    st.sidebar.image(logo_path, use_container_width=True)
+else:
+    st.sidebar.markdown("### 🌿 MASTERING BIOLOGY")
 
-# --- BẢNG CÀI ĐẶT THÔNG SỐ (SIDEBAR) ---
-st.sidebar.header("⚙️ CÀI ĐẶT THÔNG SỐ CHIẾN LƯỢC")
+st.sidebar.header("⚙️ CÀI ĐẶT CHIẾN LƯỢC")
 
 vp_choice = st.sidebar.selectbox(
     "1. Định mức VP mỗi người dùng / tháng:",
     options=[125, 250, 500],
     index=0,
-    help="Điểm tiêu dùng hoặc bán lẻ cho mỗi cá nhân"
+    help="Điểm tiêu dùng hoặc bán lẻ định mức cho mỗi cá nhân"
 )
 
 new_biz_rate = st.sidebar.number_input(
-    "2. Số TVKD mới tuyển mỗi tháng (cho mỗi TVKD):",
+    "2. Số TVKD mới tuyển mỗi tháng (mỗi TVKD):",
     min_value=1,
     max_value=5,
     value=1,
@@ -37,7 +50,7 @@ new_biz_rate = st.sidebar.number_input(
 )
 
 cust_rate = st.sidebar.number_input(
-    "3. Số khách hàng tiêu dùng thuần túy (cho mỗi TVKD):",
+    "3. Số khách hàng tiêu dùng thuần túy (mỗi TVKD):",
     min_value=0,
     max_value=10,
     value=2,
@@ -52,12 +65,25 @@ simulation_months = st.sidebar.slider(
     value=16
 )
 
-EARN_BASE_PER_VP = 22000   # 1 VP ~ 22.000 VNĐ Cơ sở thu nhập
-RO_POINT_VALUE = 27500     # 1 Điểm RO ~ 27.500 VNĐ
+# --- GẮN ẢNH FOUNDER (NAME CARD) VÀ QR CUỐI SIDEBAR ---
+st.sidebar.markdown("---")
+st.sidebar.markdown("**Người sáng lập & Huấn luyện viên:**")
+if os.path.exists(card_path):
+    st.sidebar.image(card_path, caption="ThS. Jonathan Phụng - Người Mài Rìu", use_container_width=True)
 
+if os.path.exists(qr_path):
+    st.sidebar.image(qr_path, caption="Mã kết nối / Đóng góp", use_container_width=True)
+
+# --- TIÊU ĐỀ CHÍNH ---
+st.markdown("<div class='main-title'>HỆ THỐNG MÔ PHỎNG CHIẾN LƯỢC BẬC THANG LY KHAI HERBALIFE</div>", unsafe_allow_html=True)
+st.markdown("<div class='sub-title'>Tích hợp đầy đủ: Hoa hồng sỉ (8% - 25%), Bản quyền RO (1% - 5%) & Hoa hồng doanh số TAB (2% - 7%)</div>", unsafe_allow_html=True)
+
+# --- CÁC HẰNG SỐ KINH TẾ QUY CHUẨN ---
+EARN_BASE_PER_VP = 22000   # 1 VP ~ 22.000 VNĐ Cơ sở thu nhập[cite: 1]
+RO_POINT_VALUE = 27500     # 1 Điểm RO ~ 27.500 VNĐ[cite: 1]
 cluster_vp = (1 + cust_rate) * vp_choice
 
-# --- MÔ HÌNH HÓA THÀNH VIÊN VÀ MẠNG LƯỚI ---
+# --- MÔ HÌNH HÓA THÀNH VIÊN ---
 class Member:
     _id_counter = 0
     def __init__(self, join_month, upline=None):
@@ -70,7 +96,7 @@ class Member:
         self.is_qualifying = False
         self.is_supervisor = False
         self.months_as_sup = 0
-        self.tab_pb_rate = 0.0  # Tỷ lệ % Thưởng TAB (2%, 4%, 6%)
+        self.tab_pb_rate = 0.0
 
     @property
     def discount_rate(self):
@@ -104,12 +130,12 @@ class Member:
         elif self.accum_vp >= 4000:
             self.is_qualifying = True
 
-# --- THUẬT TOÁN TÍNH ĐIỂM, RO VÀ HOA HỒNG DOANH SỐ PB ---
+# --- THUẬT TOÁN ĐÁNH GIÁ MẠNG LƯỚI ---
 def evaluate_network(node, current_month):
     wholesale_profit_total = 0.0
     ov_3_gen = 0.0
     sup_count_3_gen = 0
-    total_downline_sup_ov = 0.0  # Tổng doanh số toàn bộ GSV tuyến dưới (cho PB)
+    total_downline_sup_ov = 0.0
 
     def calculate_subtree_vp(curr):
         vp = cluster_vp
@@ -136,14 +162,11 @@ def evaluate_network(node, current_month):
                     if not sub.is_supervisor:
                         child_group_vp += calculate_subtree_vp(sub)
                 
-                # Tính RO cho 3 tầng đầu
                 if 1 <= depth <= 3:
                     sup_count_3_gen += 1
                     ov_3_gen += child_group_vp
 
-                # Tính tổng doanh số GSV cho PB (không giới hạn tầng)
                 total_downline_sup_ov += child_group_vp
-
                 traverse_all_sups(child, depth + 1)
             else:
                 traverse_all_sups(child, depth)
@@ -156,7 +179,7 @@ def evaluate_network(node, current_month):
 
     return wholesale_profit_total, ov_3_gen, sup_count_3_gen, total_downline_sup_ov
 
-# --- CHẠY MÔ PHỎNG CHI TIẾT ---
+# --- CHẠY CHU KỲ TÍNH TOÁN ---
 Member._id_counter = 0
 founder = Member(join_month=1)
 founder.accum_vp = cluster_vp
@@ -176,7 +199,6 @@ for m in range(1, simulation_months + 1):
 
     wholesale_income, ov_3_gen, sup_3_gen, total_sup_ov = evaluate_network(founder, m)
 
-    # Doanh số nhóm của bạn trong tháng (để xét điều kiện nhận RO & PB)
     total_group_vp = cluster_vp
     for d in founder.downlines:
         def get_branch_vp(curr):
@@ -186,11 +208,9 @@ for m in range(1, simulation_months + 1):
             return v
         total_group_vp += get_branch_vp(d)
 
-    # Tỷ lệ RO: Tối đa 5% khi Doanh số cá nhân/nhóm >= 2.500 VP
     ro_rate = 0.05 if total_group_vp >= 2500 else 0.04
     ro_points = ov_3_gen * ro_rate
 
-    # Xác định danh hiệu & Tỷ lệ Hoa Hồng Doanh Số (PB)
     rank = "Thành Viên (25%)"
     pb_rate = 0.0
 
@@ -198,7 +218,6 @@ for m in range(1, simulation_months + 1):
         pres_qualify_streak += 1
         if pres_qualify_streak >= 3:
             rank = "👑 Nhóm Chủ Tịch (President's Team)"
-            # Điều kiện nhận 6% PB: Cần tối thiểu 2.500 VP Tổng Doanh Số
             pb_rate = 0.06 if total_group_vp >= 2500 else 0.0
             founder.tab_pb_rate = pb_rate
             if pres_completed_month is None:
@@ -211,12 +230,10 @@ for m in range(1, simulation_months + 1):
         pres_qualify_streak = 0
         if ro_points >= 4000:
             rank = "Nhóm Triệu Phú (Millionaire Team)"
-            # Điều kiện nhận 4% PB: Cần tối thiểu 3.000 VP Tổng Doanh Số
             pb_rate = 0.04 if total_group_vp >= 3000 else 0.0
             founder.tab_pb_rate = pb_rate
         elif ro_points >= 1000:
             rank = "Nhóm Phát Triển Toàn Cầu (GET Team)"
-            # Điều kiện nhận 2% PB: Cần tối thiểu 3.500 VP Tổng Doanh Số
             pb_rate = 0.02 if total_group_vp >= 3500 else 0.0
             founder.tab_pb_rate = pb_rate
         elif total_group_vp >= 10000 or ov_3_gen >= 10000:
@@ -237,11 +254,9 @@ for m in range(1, simulation_months + 1):
 
     founder.finalize_month_status()
 
-    # Tính toán chi tiết các nguồn thu nhập
     retail_income = cluster_vp * EARN_BASE_PER_VP * founder.discount_rate
     wholesale_val = wholesale_income
     ro_val = ro_points * RO_POINT_VALUE
-    # Hoa hồng doanh số (PB) tính trên toàn bộ chiều sâu các nhánh GSV
     pb_val = (total_sup_ov * EARN_BASE_PER_VP) * pb_rate if pb_rate > 0 else 0
 
     total_est_income = retail_income + wholesale_val + ro_val + pb_val
@@ -267,13 +282,12 @@ for m in range(1, simulation_months + 1):
 
 df = pd.DataFrame(history)
 
-# --- THÔNG BÁO HOÀN THÀNH CHỦ TỊCH ---
+# --- HIỂN THỊ KẾT QUẢ THỜI ĐIỂM ĐẠT CHỦ TỊCH ---
 if pres_completed_month:
-    st.success(f"🎯 **XÁC NHẬN MỐC THỜI GIAN:** Hoàn thành vị trí **Nhóm Chủ Tịch (President's Team)** vào **Tháng thứ {pres_completed_month}** (Đạt chuẩn 3 tháng liên tiếp trên 10.000 Điểm RO).")
+    st.success(f"🎯 **XÁC NHẬN MỐC THỜI GIAN:** Hoàn thành vị trí **Nhóm Chủ Tịch (President's Team)** vào **Tháng thứ {pres_completed_month}** (Đạt chuẩn 3 tháng liên tiếp trên 10.000 Điểm RO)[cite: 1].")
 else:
-    st.warning("⚠️ Chưa đủ 3 tháng liên tiếp đạt 10.000 RO trong khung thời gian này. Vui lòng kéo tăng thời gian mô phỏng hoặc chọn định mức VP cao hơn.")
+    st.warning("⚠️ Chưa đủ 3 tháng liên tiếp đạt 10.000 RO trong khung thời gian này. Hãy kéo tăng thời gian mô phỏng hoặc chọn định mức VP cao hơn[cite: 1].")
 
-# --- BẢNG THỐNG KÊ TỔNG QUAN ---
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.metric("Tổng TVKD Cuối Kỳ", f"{df.iloc[-1]['Tổng TVKD']:,} TVKD")
@@ -286,7 +300,6 @@ with col4:
 
 st.write("---")
 
-# --- BẢNG THEO DÕI TOÀN BỘ CƠ CẤU THU NHẬP ---
 st.write("### 📋 BẢNG THEO DÕI THĂNG TIẾN, DOANH SỐ VÀ CƠ CẤU 4 NGUỒN THU NHẬP")
 st.dataframe(
     df[[
@@ -307,7 +320,6 @@ st.dataframe(
     use_container_width=True
 )
 
-# --- BIỂU ĐỒ TĂNG TRƯỞNG THU NHẬP VÀ RO ---
 st.write("### 📈 Biểu Đồ So Sánh Các Nguồn Thu Nhập Lãnh Đạo (VNĐ)")
 chart_income = df.set_index("Tháng")[["Tiền Bản Quyền RO (VNĐ)", "Hoa Hồng Doanh Số PB (VNĐ)", "Hoa Hồng Sỉ (VNĐ)"]]
 st.bar_chart(chart_income)
