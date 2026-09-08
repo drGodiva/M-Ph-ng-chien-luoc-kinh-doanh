@@ -16,7 +16,6 @@ logo_path = os.path.join(ASSETS_DIR, "MBAlogo.png")
 card_path = os.path.join(ASSETS_DIR, "founderMBA.jpg")
 qr_path = os.path.join(ASSETS_DIR, "qr_ngan_hang.png")
 
-# Tùy biến giao diện (Màu Emerald Green & Metallic Gold)
 st.markdown("""
     <style>
     .main-title { color: #004D40; text-align: center; font-weight: 800; font-size: 24px; margin-bottom: 5px; }
@@ -72,12 +71,11 @@ if os.path.exists(qr_path):
 st.markdown("<div class='main-title'>HỆ THỐNG MÔ PHỎNG CHIẾN LƯỢC BẬC THANG LY KHAI HERBALIFE</div>", unsafe_allow_html=True)
 st.markdown("<div class='sub-title'>Chiến lược sao chép (1 TVKD + 2 Khách hàng + Bạn = 4 người dùng) chuẩn Quy chế Trả thưởng</div>", unsafe_allow_html=True)
 
-# Hằng số chuẩn hóa kinh tế Herbalife Việt Nam
 EARN_BASE_PER_VP = 22000   # 1 VP ~ 22.000 VNĐ Cơ sở thu nhập
 RO_POINT_VALUE = 27500     # 1 Điểm RO ~ 27.500 VNĐ
 unit_cluster_vp = (1 + cust_rate) * vp_choice
 
-# --- TÍNH TOÁN BẰNG MA TRẬN VECTOR (TỐC ĐỘ CAO, CHỐNG CRASH) ---
+# --- MA TRẬN TĂNG TRƯỞNG ---
 cohort = [0] * (simulation_months + 2)
 cohort[1] = 1
 
@@ -95,7 +93,6 @@ for m in range(1, simulation_months + 1):
     total_monthly_vp = total_biz_members * unit_cluster_vp
     accum_vp_founder += total_monthly_vp
 
-    # Phân cấp bậc chiết khấu cá nhân
     if accum_vp_founder >= 4000:
         founder_discount = 0.50
         base_rank = "Giám Sát Viên (50%)"
@@ -112,7 +109,6 @@ for m in range(1, simulation_months + 1):
         founder_discount = 0.25
         base_rank = "Thành Viên (25%)"
 
-    # Điểm ly khai & Doanh số mạng lưới 3 tầng GSV (OV)
     if m >= 7:
         ov_3_gen = total_monthly_vp * 0.70
         sup_3_gen = int(total_biz_members * 0.45)
@@ -153,7 +149,6 @@ for m in range(1, simulation_months + 1):
         elif total_monthly_vp >= 10000 or ov_3_gen >= 10000:
             rank = "Nhóm Thế Giới (World Team)"
 
-    # Phân bổ nguồn thu nhập
     retail_inc = (unit_cluster_vp * EARN_BASE_PER_VP * founder_discount) / 1e6
     non_sup_vp = max(0, total_monthly_vp - ov_3_gen - unit_cluster_vp)
     diff_rate = max(0.0, founder_discount - 0.25)
@@ -168,41 +163,53 @@ for m in range(1, simulation_months + 1):
         "Tổng TVKD": int(total_biz_members),
         "GSV 3 Tầng": int(sup_3_gen),
         "DS Nhóm (VP)": int(total_monthly_vp),
-        "Điểm RO": round(ro_points, 1),
-        "Cấp Bậc Đạt Chuẩn": rank,
-        "Bán Lẻ (Tr đ)": round(retail_inc, 2),
-        "Hoa Hồng Sỉ (Tr đ)": round(wholesale_inc, 2),
-        "Bản Quyền RO (Tr đ)": round(ro_inc, 2),
-        "Thưởng TAB (Tr đ)": round(pb_inc, 2),
-        "TỔNG THU NHẬP (Tr đ)": round(total_inc, 2)
+        "Điểm RO": ro_points,
+        "Cấp Bậc": rank,
+        "Bán Lẻ (Tr đ)": retail_inc,
+        "Hoa Hồng Sỉ (Tr đ)": wholesale_inc,
+        "Bản Quyền RO (Tr đ)": ro_inc,
+        "Thưởng TAB (Tr đ)": pb_inc,
+        "TỔNG THU NHẬP (Tr đ)": total_inc
     })
 
 df = pd.DataFrame(data_records)
 
-# --- THÔNG BÁO HOÀN THÀNH CHỦ TỊCH ---
 if pres_completed_month:
     st.success(f"🎯 **XÁC NHẬN MỐC THỜI GIAN:** Bạn hoàn thành vị trí **Nhóm Chủ Tịch (President's Team)** vào **Tháng thứ {pres_completed_month}** (Đạt chuẩn 3 tháng liên tiếp >= 10.000 RO theo Kế hoạch trả thưởng)!")
 else:
     st.warning("⚠️ Trong khung thời gian này chưa đủ 3 tháng liên tiếp >= 10.000 RO. Kéo tăng thanh thời gian mô phỏng bên trái.")
 
-# --- METRIC THỐNG KÊ NHANH ---
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.metric("Tổng TVKD Cuối Kỳ", f"{df.iloc[-1]['Tổng TVKD']:,} người")
 with col2:
     st.metric("GSV 3 Tầng Ly Khai", f"{df.iloc[-1]['GSV 3 Tầng']:,} GSV")
 with col3:
-    st.metric("Điểm RO Tháng Cuối", f"{df.iloc[-1]['Điểm RO']:,} RO")
+    st.metric("Điểm RO Tháng Cuối", f"{df.iloc[-1]['Điểm RO']:,.1f} RO")
 with col4:
     st.metric("TỔNG THU NHẬP Tháng Cuối", f"{df.iloc[-1]['TỔNG THU NHẬP (Tr đ)']:.2f} Tr đ")
 
 st.write("---")
 
-# --- HIỂN THỊ BẢNG SỐ LIỆU ---
+# --- HIỂN THỊ BẢNG SỐ LIỆU (PHƯƠNG PHÁP AN TOÀN) ---
 st.write("### 📋 BẢNG THEO DÕI THĂNG TIẾN, DOANH SỐ VÀ CƠ CẤU 4 NGUỒN THU NHẬP")
-st.dataframe(df)
 
-# --- BIỂU ĐỒ DOANH THU ---
+# Sử dụng Pandas style format thay vì st.column_config để tương thích 100%
+styled_df = df.style.format({
+    "Tuyển Mới": "{:,.0f}",
+    "Tổng TVKD": "{:,.0f}",
+    "GSV 3 Tầng": "{:,.0f}",
+    "DS Nhóm (VP)": "{:,.0f}",
+    "Điểm RO": "{:,.1f}",
+    "Bán Lẻ (Tr đ)": "{:,.2f}",
+    "Hoa Hồng Sỉ (Tr đ)": "{:,.2f}",
+    "Bản Quyền RO (Tr đ)": "{:,.2f}",
+    "Thưởng TAB (Tr đ)": "{:,.2f}",
+    "TỔNG THU NHẬP (Tr đ)": "{:,.2f}"
+})
+
+st.dataframe(styled_df, use_container_width=True)
+
 st.write("### 📈 Biểu Đồ Cơ Cấu Thu Nhập (Triệu VNĐ)")
 chart_data = df.set_index("Tháng")[["Bán Lẻ (Tr đ)", "Hoa Hồng Sỉ (Tr đ)", "Bản Quyền RO (Tr đ)", "Thưởng TAB (Tr đ)"]]
 st.bar_chart(chart_data)
