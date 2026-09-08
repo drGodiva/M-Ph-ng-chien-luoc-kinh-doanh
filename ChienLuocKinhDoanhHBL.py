@@ -8,7 +8,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Thiết lập đường dẫn thư mục tài nguyên
+# Đường dẫn thư mục tài nguyên assets
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(CURRENT_DIR, "assets")
 
@@ -16,7 +16,7 @@ logo_path = os.path.join(ASSETS_DIR, "MBAlogo.png")
 card_path = os.path.join(ASSETS_DIR, "founderMBA.jpg")
 qr_path = os.path.join(ASSETS_DIR, "qr_ngan_hang.png")
 
-# CSS màu sắc thương hiệu Emerald Green & Metallic Gold
+# CSS màu sắc thương hiệu
 st.markdown("""
     <style>
     .main-title { color: #004D40; text-align: center; font-weight: 800; font-size: 24px; margin-bottom: 5px; }
@@ -24,10 +24,13 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- THANH CÔNG CỤ BÊN TRÁI (SIDEBAR) ---
-if os.path.exists(logo_path):
-    st.sidebar.image(logo_path, use_container_width=True)
-else:
+# --- SIDEBAR: HIỂN THỊ HÌNH ẢNH AN TOÀN ---
+try:
+    if os.path.exists(logo_path):
+        st.sidebar.image(logo_path)
+    else:
+        st.sidebar.markdown("### 🌿 MASTERING BIOLOGY")
+except Exception:
     st.sidebar.markdown("### 🌿 MASTERING BIOLOGY")
 
 st.sidebar.header("⚙️ CÀI ĐẶT CHIẾN LƯỢC")
@@ -63,24 +66,25 @@ simulation_months = st.sidebar.slider(
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("**Người sáng lập & Huấn luyện viên:**")
-if os.path.exists(card_path):
-    st.sidebar.image(card_path, caption="ThS. Jonathan Phụng - Người Mài Rìu", use_container_width=True)
+try:
+    if os.path.exists(card_path):
+        st.sidebar.image(card_path, caption="ThS. Jonathan Phụng - Người Mài Rìu")
+    if os.path.exists(qr_path):
+        st.sidebar.image(qr_path, caption="Mã QR Kết nối")
+except Exception:
+    pass
 
-if os.path.exists(qr_path):
-    st.sidebar.image(qr_path, caption="Mã QR Kết nối / Đóng góp", use_container_width=True)
-
-# --- KHUNG NỘI DUNG CHÍNH ---
+# --- TIÊU ĐỀ CHÍNH ---
 st.markdown("<div class='main-title'>HỆ THỐNG MÔ PHỎNG CHIẾN LƯỢC BẬC THANG LY KHAI HERBALIFE</div>", unsafe_allow_html=True)
 st.markdown("<div class='sub-title'>Chiến lược sao chép (1 TVKD + 2 Khách hàng + Bạn = 4 người dùng) chuẩn Quy chế Trả thưởng</div>", unsafe_allow_html=True)
 
-# Hằng số chuẩn theo quy chế Herbalife Việt Nam
-EARN_BASE_PER_VP = 22000   # 1 VP ~ 22.000 VNĐ Cơ sở thu nhập[cite: 1]
-RO_POINT_VALUE = 27500     # 1 Điểm RO ~ 27.500 VNĐ[cite: 1]
+EARN_BASE_PER_VP = 22000   # Cơ sở thu nhập 22.000 VNĐ / VP[cite: 1]
+RO_POINT_VALUE = 27500     # Giá trị điểm RO 27.500 VNĐ[cite: 1]
 unit_cluster_vp = (1 + cust_rate) * vp_choice
 
-# Thuật toán ma trận tăng trưởng tối ưu
+# --- TÍNH TOÁN MA TRẬN TĂNG TRƯỞNG ---
 cohort = [0] * (simulation_months + 2)
-cohort[1] = 1  # Tháng 1 bạn tuyển 1 TVKD trực tiếp
+cohort[1] = 1
 
 data_records = []
 accum_vp_founder = 0
@@ -96,7 +100,6 @@ for m in range(1, simulation_months + 1):
     total_monthly_vp = total_biz_members * unit_cluster_vp
     accum_vp_founder += total_monthly_vp
 
-    # Đánh giá danh hiệu theo tích lũy điểm cá nhân/nhóm
     if accum_vp_founder >= 4000:
         founder_discount = 0.50
         base_rank = "Giám Sát Viên (50%)"
@@ -113,7 +116,6 @@ for m in range(1, simulation_months + 1):
         founder_discount = 0.25
         base_rank = "Thành Viên (25%)"
 
-    # Điểm ly khai & Doanh số mạng lưới 3 tầng GSV (OV)
     if m >= 7:
         ov_3_gen = total_monthly_vp * 0.70
         sup_3_gen = int(total_biz_members * 0.45)
@@ -154,7 +156,6 @@ for m in range(1, simulation_months + 1):
         elif total_monthly_vp >= 10000 or ov_3_gen >= 10000:
             rank = "Nhóm Thế Giới (World Team)"
 
-    # Tính toán thu nhập (Đơn vị: Triệu VNĐ)
     retail_inc = (unit_cluster_vp * EARN_BASE_PER_VP * founder_discount) / 1e6
     non_sup_vp = max(0, total_monthly_vp - ov_3_gen - unit_cluster_vp)
     diff_rate = max(0.0, founder_discount - 0.25)
@@ -165,17 +166,17 @@ for m in range(1, simulation_months + 1):
 
     data_records.append({
         "Tháng": f"Tháng {m}",
-        "TVKD Mới Tuyển": new_biz,
-        "Tổng TVKD": total_biz_members,
-        "GSV 3 Tầng": sup_3_gen,
-        "Doanh Số Nhóm": total_monthly_vp,
+        "Tuyển Mới": int(new_biz),
+        "Tổng TVKD": int(total_biz_members),
+        "GSV 3 Tầng": int(sup_3_gen),
+        "DS Nhóm (VP)": int(total_monthly_vp),
         "Điểm RO": round(ro_points, 1),
-        "Cấp Bậc Đạt Được": rank,
-        "Bán Lẻ (Tr đ)": retail_inc,
-        "Hoa Hồng Sỉ (Tr đ)": wholesale_inc,
-        "Bản Quyền RO (Tr đ)": ro_inc,
-        "Thưởng TAB (Tr đ)": pb_inc,
-        "TỔNG THU NHẬP (Tr đ)": total_inc
+        "Cấp Bậc Đạt Chuẩn": rank,
+        "Bán Lẻ (Tr đ)": round(retail_inc, 2),
+        "Hoa Hồng Sỉ (Tr đ)": round(wholesale_inc, 2),
+        "Bản Quyền RO (Tr đ)": round(ro_inc, 2),
+        "Thưởng TAB (Tr đ)": round(pb_inc, 2),
+        "TỔNG THU NHẬP (Tr đ)": round(total_inc, 2)
     })
 
 df = pd.DataFrame(data_records)
@@ -186,7 +187,7 @@ if pres_completed_month:
 else:
     st.warning("⚠️ Trong khung thời gian này chưa đủ 3 tháng liên tiếp $\ge$ 10.000 RO. Kéo tăng thanh thời gian mô phỏng bên trái.")
 
-# --- BẢNG METRIC TỔNG QUAN ---
+# --- METRICS TỔNG QUAN ---
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.metric("Tổng TVKD Cuối Kỳ", f"{df.iloc[-1]['Tổng TVKD']:,} người")
@@ -195,32 +196,27 @@ with col2:
 with col3:
     st.metric("Điểm RO Tháng Cuối", f"{df.iloc[-1]['Điểm RO']:,} RO")
 with col4:
-    st.metric("TỔNG THU NHẬP Tháng Cuối", f"{df.iloc[-1]['TỔNG THU NHẬP (Tr đ)']:.1f} Triệu VNĐ")
+    st.metric("TỔNG THU NHẬP Tháng Cuối", f"{df.iloc[-1]['TỔNG THU NHẬP (Tr đ)']:.2f} Tr đ")
 
 st.write("---")
 
-# --- BẢNG DỮ LIỆU ĐƯỢC TỐI ƯU CỘT VỪA KHÍT MÀN HÌNH ---
+# --- BẢNG THEO DÕI AN TOÀN VÀ ĐẦY ĐỦ CỘT ---
 st.write("### 📋 BẢNG THEO DÕI THĂNG TIẾN, DOANH SỐ VÀ CƠ CẤU 4 NGUỒN THU NHẬP")
-st.dataframe(
-    df,
-    use_container_width=True,
-    hide_index=True,
-    column_config={
-        "Tháng": st.column_config.TextColumn("Tháng", width="small"),
-        "TVKD Mới Tuyển": st.column_config.NumberColumn("Tuyển Mới", format="%d người", width="small"),
-        "Tổng TVKD": st.column_config.NumberColumn("Tổng TVKD", format="%d người", width="small"),
-        "GSV 3 Tầng": st.column_config.NumberColumn("GSV 3 Tầng", format="%d GSV", width="small"),
-        "Doanh Số Nhóm": st.column_config.NumberColumn("DS Nhóm (VP)", format="%d VP", width="small"),
-        "Điểm RO": st.column_config.NumberColumn("Điểm RO", format="%.1f RO", width="small"),
-        "Cấp Bậc Đạt Được": st.column_config.TextColumn("Cấp Bậc Đạt Chuẩn", width="medium"),
-        "Bán Lẻ (Tr đ)": st.column_config.NumberColumn("Bán Lẻ", format="%.2f Tr", width="small"),
-        "Hoa Hồng Sỉ (Tr đ)": st.column_config.NumberColumn("Hoa Hồng Sỉ", format="%.2f Tr", width="small"),
-        "Bản Quyền RO (Tr đ)": st.column_config.NumberColumn("Bản Quyền RO", format="%.2f Tr", width="small"),
-        "Thưởng TAB (Tr đ)": st.column_config.NumberColumn("Thưởng TAB", format="%.2f Tr", width="small"),
-        "TỔNG THU NHẬP (Tr đ)": st.column_config.NumberColumn("TỔNG THU NHẬP", format="%.2f Tr đ", width="medium")
-    }
-)
+styled_df = df.style.format({
+    "Tuyển Mới": "{:,.0f}",
+    "Tổng TVKD": "{:,.0f}",
+    "GSV 3 Tầng": "{:,.0f}",
+    "DS Nhóm (VP)": "{:,.0f}",
+    "Điểm RO": "{:,.1f}",
+    "Bán Lẻ (Tr đ)": "{:,.2f}",
+    "Hoa Hồng Sỉ (Tr đ)": "{:,.2f}",
+    "Bản Quyền RO (Tr đ)": "{:,.2f}",
+    "Thưởng TAB (Tr đ)": "{:,.2f}",
+    "TỔNG THU NHẬP (Tr đ)": "{:,.2f}"
+})
+st.dataframe(styled_df, use_container_width=True)
 
-st.write("### 📈 Biểu Đồ Tăng Trưởng Thu Nhập Hệ Thống (Triệu VNĐ)")
+# --- BIỂU ĐỒ DOANH THU ---
+st.write("### 📈 Biểu Đồ Cơ Cấu Thu Nhập (Triệu VNĐ)")
 chart_data = df.set_index("Tháng")[["Bán Lẻ (Tr đ)", "Hoa Hồng Sỉ (Tr đ)", "Bản Quyền RO (Tr đ)", "Thưởng TAB (Tr đ)"]]
 st.bar_chart(chart_data)
