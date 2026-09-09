@@ -12,7 +12,7 @@ logo_path = os.path.join(ASSETS_DIR, "MBAlogo.png")
 card_path = os.path.join(ASSETS_DIR, "founderMBA.jpg")
 qr_path = os.path.join(ASSETS_DIR, "qr_ngan_hang.png")
 
-# --- 2. GIAO DIỆN TÙY BIẾN ---
+# --- 2. CSS TÙY BIẾN ---
 st.markdown("""
     <style>
     .main-title { color: #004D40; text-align: center; font-weight: 800; font-size: 26px; margin-bottom: 5px; }
@@ -35,13 +35,12 @@ st.sidebar.markdown("---")
 if os.path.exists(card_path): st.sidebar.image(card_path, caption="ThS. Jonathan Phụng")
 if os.path.exists(qr_path): st.sidebar.image(qr_path, caption="Mã QR Kết nối")
 
-# --- 4. THUẬT TOÁN TOÁN HỌC CHÍNH XÁC 100% ---
-EARN_BASE_PER_VP = 22000   
-RO_POINT_VALUE = 27500     
+# --- 4. THUẬT TOÁN MA TRẬN LUỸ THỪA ---
+EARN_BASE_PER_VP = 22000   # 1 VP ~ 22.000 VNĐ[cite: 1]
+RO_POINT_VALUE = 27500     # 1 Điểm RO ~ 27.500 VNĐ[cite: 1]
 unit_cluster_vp = (1 + cust_rate) * vp_choice
 MAX_AGE = selected_month + 2
 
-# Ma trận lưu trữ lịch sử phát triển của 1 Nhánh tiêu chuẩn
 vp_hist = [0] * MAX_AGE
 accum_hist = [0] * MAX_AGE
 gv_hist = [0] * MAX_AGE
@@ -80,37 +79,35 @@ for k in range(1, MAX_AGE):
     else: discount[k] = 0.25
 
     if is_gsv[k]:
-        ro_pts = (my_ov1 + my_ov2 + my_ov3) * (0.05 if my_gv >= 2500 else 0.04)
+        ro_pts = (my_ov1 + my_ov2 + my_ov3) * (0.05 if my_gv >= 2500 else 0.04)[cite: 1]
         ro_streak[k] = ro_streak[k-1] + 1 if ro_pts >= 10000 else 0
         if ro_streak[k] >= 3: pb_rate_hist[k] = 0.06
         elif ro_pts >= 4000: pb_rate_hist[k] = 0.04
         elif ro_pts >= 1000: pb_rate_hist[k] = 0.02
 
-# Áp dụng cho góc nhìn của Người Sáng Lập (Founder)
+# Áp dụng cho góc nhìn của Người Sáng Lập
 st.markdown("<div class='main-title'>HỆ THỐNG MÔ PHỎNG CHIẾN LƯỢC BẬC THANG LY KHAI HERBALIFE</div>", unsafe_allow_html=True)
 
 data_records = []
 pres_completed_month = None
 
 for M in range(1, selected_month + 1):
-    k = M + 1 # Tuổi của hệ thống (Bạn đã hoạt động trước tháng 1)
+    k = M + 1 
     
-    # Cấp số nhân chính xác
     total_members = (1 + new_biz_rate) ** M
     downlines = total_members - 1
     new_recruits = new_biz_rate * ((1 + new_biz_rate) ** (M - 1))
     
     f_gv = gv_hist[k]
-    f_ro_pts = (ov1_hist[k] + ov2_hist[k] + ov3_hist[k]) * (0.05 if f_gv >= 2500 else 0.04)
+    f_ro_pts = (ov1_hist[k] + ov2_hist[k] + ov3_hist[k]) * (0.05 if f_gv >= 2500 else 0.04)[cite: 1]
     f_discount = discount[k]
     f_pb_rate = pb_rate_hist[k]
     
-    # Danh hiệu
     if is_gsv[k]:
         if ro_streak[k] >= 3: 
             f_rank = "👑 PRES"
             if pres_completed_month is None: pres_completed_month = M
-        elif ro_streak[k] > 0: f_rank = f"PRES ĐC ({ro_streak[k]}/3)"
+        elif ro_streak[k] > 0: f_rank = f"PRES ({ro_streak[k]}/3)"
         elif f_ro_pts >= 4000: f_rank = "MILL"
         elif f_ro_pts >= 1000: f_rank = "GET"
         elif f_gv >= 10000 or (ov1_hist[k]+ov2_hist[k]+ov3_hist[k]) >= 10000: f_rank = "WT"
@@ -121,7 +118,6 @@ for M in range(1, selected_month + 1):
         elif accum_hist[k] >= 500: f_rank = "SC (35%)"
         else: f_rank = "TV (25%)"
 
-    # Tính nút chặn sỉ và PB
     f_wholesale = 0
     f_pb_vp = 0
     gsv_count_3gen = 0
@@ -131,14 +127,14 @@ for M in range(1, selected_month + 1):
         if not is_gsv[f1_age]:
             f_wholesale += new_biz_rate * vp_hist[f1_age] * max(0, f_discount - discount[f1_age])
         else:
-            gsv_count_3gen += new_biz_rate # Ước tính số lượng nhánh GSV
+            gsv_count_3gen += new_biz_rate
             branch_total = gv_hist[f1_age] + ov1_hist[f1_age] + ov2_hist[f1_age] + ov3_hist[f1_age] + ov4p_hist[f1_age]
             f_pb_vp += new_biz_rate * branch_total * max(0, f_pb_rate - pb_rate_hist[f1_age])
 
     retail_inc = (unit_cluster_vp * EARN_BASE_PER_VP * f_discount) / 1e6
-    wholesale_inc = (f_wholesale * EARN_BASE_PER_VP) / 1e6
-    ro_inc = (f_ro_pts * RO_POINT_VALUE) / 1e6
-    pb_inc = (f_pb_vp * EARN_BASE_PER_VP) / 1e6
+    wholesale_inc = (f_wholesale * EARN_BASE_PER_VP) / 1e6[cite: 1]
+    ro_inc = (f_ro_pts * RO_POINT_VALUE) / 1e6[cite: 1]
+    pb_inc = (f_pb_vp * EARN_BASE_PER_VP) / 1e6[cite: 1]
     total_inc = retail_inc + wholesale_inc + ro_inc + pb_inc
 
     data_records.append({
@@ -156,9 +152,9 @@ for M in range(1, selected_month + 1):
         "TỔNG": total_inc
     })
 
-# --- 5. RENDER BẢNG HTML CHỐNG SỌC VÀ CỐ ĐỊNH TIÊU ĐỀ ---
+# --- 5. RENDER BẢNG HTML XÓA THỤT LỀ ---
 if pres_completed_month:
-    st.success(f"🎯 **ĐẠT CHUẨN:** Hoàn thành **Nhóm Chủ Tịch (President's Team)** vào **Tháng thứ {pres_completed_month}**!")
+    st.success(f"🎯 **ĐẠT CHUẨN:** Hoàn thành **Nhóm Chủ Tịch (President's Team)** vào **Tháng thứ {pres_completed_month}**[cite: 1]!")
 
 col1, col2, col3, col4 = st.columns(4)
 last = data_records[-1]
@@ -167,48 +163,44 @@ with col2: st.metric("Điểm RO Tháng Cuối", f"{last['Điểm RO']:,.1f}")
 with col3: st.metric("Cấp Bậc Hiện Tại", last['Cấp Bậc'])
 with col4: st.metric("TỔNG THU NHẬP Tháng Cuối", f"{last['TỔNG']:,.1f} Tr đ")
 
-# Thiết kế HTML Inline cứng: Trị dứt điểm mọi lỗi giao diện Streamlit
-html_table = '''
-<div style="max-height: 600px; overflow-y: scroll; border: 1px solid #444; border-radius: 6px; margin-top: 15px;">
-    <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 15px;">
-        <thead style="position: sticky; top: 0; background-color: #004D40; z-index: 100;">
-            <tr>
-                <th style="padding: 12px; color: #D4AF37; border: 1px solid #222;">Tháng</th>
-                <th style="padding: 12px; color: #D4AF37; border: 1px solid #222;">Tuyển Mới<br>(Người)</th>
-                <th style="padding: 12px; color: #D4AF37; border: 1px solid #222;">Tuyến Dưới<br>(2^n - 1)</th>
-                <th style="padding: 12px; color: #D4AF37; border: 1px solid #222;">Tổng TVKD<br>(2^n)</th>
-                <th style="padding: 12px; color: #D4AF37; border: 1px solid #222;">DS Nhóm<br>(VP)</th>
-                <th style="padding: 12px; color: #D4AF37; border: 1px solid #222;">Điểm RO</th>
-                <th style="padding: 12px; color: #D4AF37; border: 1px solid #222;">Cấp Bậc</th>
-                <th style="padding: 12px; color: #D4AF37; border: 1px solid #222;">Bán Lẻ<br>(Tr đ)</th>
-                <th style="padding: 12px; color: #D4AF37; border: 1px solid #222;">Hoa Hồng Sỉ<br>(Tr đ)</th>
-                <th style="padding: 12px; color: #D4AF37; border: 1px solid #222;">Bản Quyền RO<br>(Tr đ)</th>
-                <th style="padding: 12px; color: #D4AF37; border: 1px solid #222;">Thưởng TAB<br>(Tr đ)</th>
-                <th style="padding: 12px; color: #D4AF37; border: 1px solid #222; background-color: #00332a;">TỔNG<br>(Tr đ)</th>
-            </tr>
-        </thead>
-        <tbody>
-'''
+st.write("### 📋 BẢNG TIẾN ĐỘ THĂNG TIẾN, NHÂN SỰ VÀ DOANH THU")
+
+html_table = "<div style='max-height: 600px; overflow-y: auto; border: 1px solid #444; border-radius: 6px; margin-top: 15px;'>"
+html_table += "<table style='width: 100%; border-collapse: collapse; text-align: center; font-size: 15px;'>"
+html_table += "<thead style='position: sticky; top: 0; background-color: #004D40; z-index: 100;'>"
+html_table += "<tr>"
+html_table += "<th style='padding: 12px; color: #D4AF37; border: 1px solid #222;'>Tháng</th>"
+html_table += "<th style='padding: 12px; color: #D4AF37; border: 1px solid #222;'>Tuyển Mới<br>(Người)</th>"
+html_table += "<th style='padding: 12px; color: #D4AF37; border: 1px solid #222;'>Tuyến Dưới<br>(Người)</th>"
+html_table += "<th style='padding: 12px; color: #D4AF37; border: 1px solid #222;'>Tổng TVKD<br>(Người)</th>"
+html_table += "<th style='padding: 12px; color: #D4AF37; border: 1px solid #222;'>DS Nhóm<br>(VP)</th>"
+html_table += "<th style='padding: 12px; color: #D4AF37; border: 1px solid #222;'>Điểm RO</th>"
+html_table += "<th style='padding: 12px; color: #D4AF37; border: 1px solid #222;'>Cấp Bậc</th>"
+html_table += "<th style='padding: 12px; color: #D4AF37; border: 1px solid #222;'>Bán Lẻ<br>(Tr đ)</th>"
+html_table += "<th style='padding: 12px; color: #D4AF37; border: 1px solid #222;'>Hoa Hồng Sỉ<br>(Tr đ)</th>"
+html_table += "<th style='padding: 12px; color: #D4AF37; border: 1px solid #222;'>Bản Quyền RO<br>(Tr đ)</th>"
+html_table += "<th style='padding: 12px; color: #D4AF37; border: 1px solid #222;'>Thưởng TAB<br>(Tr đ)</th>"
+html_table += "<th style='padding: 12px; color: #D4AF37; border: 1px solid #222; background-color: #00332a;'>TỔNG<br>(Tr đ)</th>"
+html_table += "</tr></thead><tbody>"
 
 for row in data_records:
-    html_table += f'''
-        <tr style="background-color: transparent;">
-            <td style="padding: 10px; border: 1px solid #555; font-weight: bold;">{row['Tháng']}</td>
-            <td style="padding: 10px; border: 1px solid #555;">{int(row['Tuyển Mới']):,}</td>
-            <td style="padding: 10px; border: 1px solid #555;">{int(row['Tuyến Dưới']):,}</td>
-            <td style="padding: 10px; border: 1px solid #555; font-weight: bold;">{int(row['Tổng TVKD']):,}</td>
-            <td style="padding: 10px; border: 1px solid #555;">{int(row['DS Nhóm']):,}</td>
-            <td style="padding: 10px; border: 1px solid #555;">{row['Điểm RO']:,.1f}</td>
-            <td style="padding: 10px; border: 1px solid #555; font-weight: bold; color: #D4AF37;">{row['Cấp Bậc']}</td>
-            <td style="padding: 10px; border: 1px solid #555; text-align: right;">{row['Bán Lẻ']:,.1f}</td>
-            <td style="padding: 10px; border: 1px solid #555; text-align: right;">{row['Sỉ']:,.1f}</td>
-            <td style="padding: 10px; border: 1px solid #555; text-align: right;">{row['RO']:,.1f}</td>
-            <td style="padding: 10px; border: 1px solid #555; text-align: right;">{row['TAB']:,.1f}</td>
-            <td style="padding: 10px; border: 1px solid #555; text-align: right; font-weight: bold; color: #4CAF50;">{row['TỔNG']:,.1f}</td>
-        </tr>
-    '''
+    html_table += "<tr style='background-color: transparent;'>"
+    html_table += f"<td style='padding: 10px; border: 1px solid #555; font-weight: bold;'>{row['Tháng']}</td>"
+    html_table += f"<td style='padding: 10px; border: 1px solid #555;'>{int(row['Tuyển Mới']):,}</td>"
+    html_table += f"<td style='padding: 10px; border: 1px solid #555;'>{int(row['Tuyến Dưới']):,}</td>"
+    html_table += f"<td style='padding: 10px; border: 1px solid #555; font-weight: bold;'>{int(row['Tổng TVKD']):,}</td>"
+    html_table += f"<td style='padding: 10px; border: 1px solid #555;'>{int(row['DS Nhóm']):,}</td>"
+    html_table += f"<td style='padding: 10px; border: 1px solid #555;'>{row['Điểm RO']:,.1f}</td>"
+    html_table += f"<td style='padding: 10px; border: 1px solid #555; font-weight: bold; color: #D4AF37;'>{row['Cấp Bậc']}</td>"
+    html_table += f"<td style='padding: 10px; border: 1px solid #555; text-align: right;'>{row['Bán Lẻ']:,.1f}</td>"
+    html_table += f"<td style='padding: 10px; border: 1px solid #555; text-align: right;'>{row['Sỉ']:,.1f}</td>"
+    html_table += f"<td style='padding: 10px; border: 1px solid #555; text-align: right;'>{row['RO']:,.1f}</td>"
+    html_table += f"<td style='padding: 10px; border: 1px solid #555; text-align: right;'>{row['TAB']:,.1f}</td>"
+    html_table += f"<td style='padding: 10px; border: 1px solid #555; text-align: right; font-weight: bold; color: #4CAF50;'>{row['TỔNG']:,.1f}</td>"
+    html_table += "</tr>"
 
-html_table += '</tbody></table></div>'
+html_table += "</tbody></table></div>"
+
 st.markdown(html_table, unsafe_allow_html=True)
 
 st.write("### 📈 Biểu Đồ Cơ Cấu Thu Nhập (Triệu VNĐ)")
