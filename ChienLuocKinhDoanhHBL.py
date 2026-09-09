@@ -8,7 +8,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- 1. ĐƯỜNG DẪN TÀI NGUYÊN (ASSETS) ---
+# --- ĐƯỜNG DẪN TÀI NGUYÊN (ASSETS) ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(BASE_DIR, "assets")
 
@@ -16,21 +16,18 @@ logo_path = os.path.join(ASSETS_DIR, "MBAlogo.png")
 card_path = os.path.join(ASSETS_DIR, "founderMBA.jpg")
 qr_path = os.path.join(ASSETS_DIR, "qr_ngan_hang.png")
 
-# --- 2. CSS TÙY BIẾN: BẢNG STICKY VÀ CHỐNG KHUẤT SỐ ---
+# --- CSS TÙY BIẾN: BẢNG STICKY VÀ CHỐNG KHUẤT SỐ ---
 st.markdown("""
     <style>
-    /* Định dạng tiêu đề */
     .main-title { color: #004D40; text-align: center; font-weight: 800; font-size: 24px; margin-bottom: 5px; }
     .sub-title { color: #D4AF37; text-align: center; font-weight: 600; font-size: 15px; margin-bottom: 20px; }
     
-    /* Chống khuất số tiền ở các ô Metric */
     div[data-testid="metric-container"] > div > div {
         white-space: normal !important;
         overflow-wrap: break-word !important;
         font-size: 1.8rem !important; 
     }
     
-    /* Thiết lập bảng HTML cố định tiêu đề */
     .table-container {
         max-height: 550px;
         overflow-y: auto;
@@ -75,7 +72,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 3. THANH CÔNG CỤ (SIDEBAR) ---
+# --- THANH CÔNG CỤ (SIDEBAR) ---
 if os.path.exists(logo_path):
     st.sidebar.image(logo_path)
 else:
@@ -83,36 +80,17 @@ else:
 
 st.sidebar.header("⚙️ CÀI ĐẶT CHIẾN LƯỢC")
 
-vp_choice = st.sidebar.selectbox(
-    "1. Định mức VP mỗi người dùng / tháng:",
-    options=[100, 125, 250, 500],
-    index=1
-)
-
-new_biz_rate = st.sidebar.number_input(
-    "2. Số TVKD mới tuyển mỗi tháng (mỗi TVKD):",
-    min_value=1, max_value=5, value=1, step=1
-)
-
-cust_rate = st.sidebar.number_input(
-    "3. Số khách tiêu dùng thuần túy (mỗi TVKD):",
-    min_value=0, max_value=10, value=2, step=1
-)
-
-# Thanh trượt chọn đúng mốc tháng muốn xem
-selected_month = st.sidebar.slider(
-    "4. Chọn tháng muốn xem kết quả:",
-    min_value=1, max_value=36, value=6
-)
+vp_choice = st.sidebar.selectbox("1. Định mức VP mỗi người dùng / tháng:", options=[100, 125, 250, 500], index=1)
+new_biz_rate = st.sidebar.number_input("2. Số TVKD mới tuyển mỗi tháng (mỗi TVKD):", min_value=1, max_value=5, value=1, step=1)
+cust_rate = st.sidebar.number_input("3. Số khách tiêu dùng thuần túy (mỗi TVKD):", min_value=0, max_value=10, value=2, step=1)
+selected_month = st.sidebar.slider("4. Chọn tháng muốn xem kết quả:", min_value=1, max_value=36, value=6)
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("**Người sáng lập & Huấn luyện viên:**")
-if os.path.exists(card_path):
-    st.sidebar.image(card_path, caption="ThS. Jonathan Phụng - Người Mài Rìu")
-if os.path.exists(qr_path):
-    st.sidebar.image(qr_path, caption="Mã QR Kết nối")
+if os.path.exists(card_path): st.sidebar.image(card_path, caption="ThS. Jonathan Phụng - Người Mài Rìu")
+if os.path.exists(qr_path): st.sidebar.image(qr_path, caption="Mã QR Kết nối")
 
-# --- 4. GIAO DIỆN CHÍNH & TÍNH TOÁN ---
+# --- GIAO DIỆN CHÍNH & TÍNH TOÁN ---
 st.markdown("<div class='main-title'>HỆ THỐNG MÔ PHỎNG CHIẾN LƯỢC BẬC THANG LY KHAI HERBALIFE</div>", unsafe_allow_html=True)
 st.markdown("<div class='sub-title'>Ứng dụng phân tích thực chiến hệ thống kinh doanh theo thời gian thực</div>", unsafe_allow_html=True)
 
@@ -120,7 +98,6 @@ EARN_BASE_PER_VP = 22000
 RO_POINT_VALUE = 27500     
 unit_cluster_vp = (1 + cust_rate) * vp_choice
 
-# Tính toán theo số tháng Thầy chọn trên thanh trượt
 cohort_new = [0] * (selected_month + 2)
 data_records = []
 accum_vp_founder = 0
@@ -213,7 +190,7 @@ for m in range(1, selected_month + 1):
         "TỔNG": total_inc
     })
 
-# --- 5. RENDER CHỈ SỐ NHANH ---
+# --- RENDER CHỈ SỐ NHANH ---
 if pres_completed_month:
     st.success(f"🎯 **XÁC NHẬN MỐC THỜI GIAN:** Lên **Nhóm Chủ Tịch (President's Team)** vào **Tháng thứ {pres_completed_month}**!")
 else:
@@ -226,54 +203,38 @@ with col2: st.metric("GSV Ly Khai Tháng Này", f"{last_record['GSV Ly Khai']:,}
 with col3: st.metric("Điểm RO Tháng Này", f"{last_record['Điểm RO']:,.1f}")
 with col4: st.metric("TỔNG THU NHẬP Tháng Này", f"{last_record['TỔNG']:,.1f} Tr đ")
 
-# --- 6. RENDER BẢNG HTML (Mã unsafe_allow_html=True giúp code không bị thô) ---
+# --- RENDER BẢNG HTML (CHUẨN HÓA KHÔNG THỤT LỀ) ---
 st.write("### 📋 BẢNG TIẾN ĐỘ THĂNG TIẾN, NHÂN SỰ VÀ DOANH THU")
-html_table = '''
-<div class="table-container">
-    <table class="sticky-table">
-        <thead>
-            <tr>
-                <th>Tháng</th>
-                <th>Tuyển Mới<br>(Người)</th>
-                <th>Tổng TVKD<br>(Người)</th>
-                <th>GSV Ly Khai<br>(Tầng 1-3)</th>
-                <th>DS Nhóm<br>(VP)</th>
-                <th>Điểm RO</th>
-                <th>Cấp Bậc<br>Của Bạn</th>
-                <th>Bán Lẻ<br>(Tr đ)</th>
-                <th>Hoa Hồng Sỉ<br>(Tr đ)</th>
-                <th>Bản Quyền RO<br>(Tr đ)</th>
-                <th>Thưởng TAB<br>(Tr đ)</th>
-                <th>TỔNG THU NHẬP<br>(Tr đ)</th>
-            </tr>
-        </thead>
-        <tbody>
-'''
+
+# Cấu trúc HTML được nối chuỗi liên tục, không dùng khoảng trắng thụt lề để chống lỗi Markdown
+html_table = '<div class="table-container"><table class="sticky-table"><thead><tr>'
+html_table += '<th>Tháng</th><th>Tuyển Mới<br>(Người)</th><th>Tổng TVKD<br>(Người)</th>'
+html_table += '<th>GSV Ly Khai<br>(Tầng 1-3)</th><th>DS Nhóm<br>(VP)</th><th>Điểm RO</th>'
+html_table += '<th>Cấp Bậc<br>Của Bạn</th><th>Bán Lẻ<br>(Tr đ)</th><th>Hoa Hồng Sỉ<br>(Tr đ)</th>'
+html_table += '<th>Bản Quyền RO<br>(Tr đ)</th><th>Thưởng TAB<br>(Tr đ)</th><th>TỔNG THU NHẬP<br>(Tr đ)</th>'
+html_table += '</tr></thead><tbody>'
 
 for row in data_records:
-    html_table += f'''
-        <tr>
-            <td class="text-center text-bold">{row['Tháng']}</td>
-            <td class="text-center">{row['Tuyển Mới']:,}</td>
-            <td class="text-center text-bold">{row['Tổng TVKD']:,}</td>
-            <td class="text-center">{row['GSV Ly Khai']:,}</td>
-            <td class="text-center">{row['DS Nhóm']:,}</td>
-            <td class="text-center">{row['Điểm RO']:,.1f}</td>
-            <td class="text-center text-bold">{row['Cấp Bậc']}</td>
-            <td>{row['Bán Lẻ']:,.1f}</td>
-            <td>{row['Sỉ']:,.1f}</td>
-            <td>{row['RO']:,.1f}</td>
-            <td>{row['TAB']:,.1f}</td>
-            <td class="highlight-col">{row['TỔNG']:,.1f}</td>
-        </tr>
-    '''
+    html_table += '<tr>'
+    html_table += f'<td class="text-center text-bold">{row["Tháng"]}</td>'
+    html_table += f'<td class="text-center">{row["Tuyển Mới"]:,}</td>'
+    html_table += f'<td class="text-center text-bold">{row["Tổng TVKD"]:,}</td>'
+    html_table += f'<td class="text-center">{row["GSV Ly Khai"]:,}</td>'
+    html_table += f'<td class="text-center">{row["DS Nhóm"]:,}</td>'
+    html_table += f'<td class="text-center">{row["Điểm RO"]:,.1f}</td>'
+    html_table += f'<td class="text-center text-bold">{row["Cấp Bậc"]}</td>'
+    html_table += f'<td>{row["Bán Lẻ"]:,.1f}</td>'
+    html_table += f'<td>{row["Sỉ"]:,.1f}</td>'
+    html_table += f'<td>{row["RO"]:,.1f}</td>'
+    html_table += f'<td>{row["TAB"]:,.1f}</td>'
+    html_table += f'<td class="highlight-col">{row["TỔNG"]:,.1f}</td>'
+    html_table += '</tr>'
 
 html_table += '</tbody></table></div>'
 
-# ÉP STREAMLIT DỊCH MÃ HTML 
 st.markdown(html_table, unsafe_allow_html=True)
 
-# --- 7. BIỂU ĐỒ DOANH THU ---
+# --- BIỂU ĐỒ DOANH THU ---
 st.write("### 📈 Biểu Đồ Cơ Cấu Thu Nhập (Triệu VNĐ)")
 if len(data_records) > 0:
     df_chart = pd.DataFrame(data_records).set_index("Tháng")[["Bán Lẻ", "Sỉ", "RO", "TAB"]]
