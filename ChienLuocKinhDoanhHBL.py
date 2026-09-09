@@ -35,9 +35,9 @@ st.sidebar.markdown("---")
 if os.path.exists(card_path): st.sidebar.image(card_path, caption="ThS. Jonathan Phụng")
 if os.path.exists(qr_path): st.sidebar.image(qr_path, caption="Mã QR Kết nối")
 
-# --- 4. THUẬT TOÁN MA TRẬN LUỸ THỪA ---
-EARN_BASE_PER_VP = 22000   # 1 VP ~ 22.000 VNĐ[cite: 1]
-RO_POINT_VALUE = 27500     # 1 Điểm RO ~ 27.500 VNĐ[cite: 1]
+# --- 4. THUẬT TOÁN MA TRẬN LŨY THỪA ĐỘNG ---
+EARN_BASE_PER_VP = 22000   
+RO_POINT_VALUE = 27500     
 unit_cluster_vp = (1 + cust_rate) * vp_choice
 MAX_AGE = selected_month + 2
 
@@ -79,7 +79,7 @@ for k in range(1, MAX_AGE):
     else: discount[k] = 0.25
 
     if is_gsv[k]:
-        ro_pts = (my_ov1 + my_ov2 + my_ov3) * (0.05 if my_gv >= 2500 else 0.04)[cite: 1]
+        ro_pts = (my_ov1 + my_ov2 + my_ov3) * (0.05 if my_gv >= 2500 else 0.04)
         ro_streak[k] = ro_streak[k-1] + 1 if ro_pts >= 10000 else 0
         if ro_streak[k] >= 3: pb_rate_hist[k] = 0.06
         elif ro_pts >= 4000: pb_rate_hist[k] = 0.04
@@ -99,7 +99,7 @@ for M in range(1, selected_month + 1):
     new_recruits = new_biz_rate * ((1 + new_biz_rate) ** (M - 1))
     
     f_gv = gv_hist[k]
-    f_ro_pts = (ov1_hist[k] + ov2_hist[k] + ov3_hist[k]) * (0.05 if f_gv >= 2500 else 0.04)[cite: 1]
+    f_ro_pts = (ov1_hist[k] + ov2_hist[k] + ov3_hist[k]) * (0.05 if f_gv >= 2500 else 0.04)
     f_discount = discount[k]
     f_pb_rate = pb_rate_hist[k]
     
@@ -132,9 +132,9 @@ for M in range(1, selected_month + 1):
             f_pb_vp += new_biz_rate * branch_total * max(0, f_pb_rate - pb_rate_hist[f1_age])
 
     retail_inc = (unit_cluster_vp * EARN_BASE_PER_VP * f_discount) / 1e6
-    wholesale_inc = (f_wholesale * EARN_BASE_PER_VP) / 1e6[cite: 1]
-    ro_inc = (f_ro_pts * RO_POINT_VALUE) / 1e6[cite: 1]
-    pb_inc = (f_pb_vp * EARN_BASE_PER_VP) / 1e6[cite: 1]
+    wholesale_inc = (f_wholesale * EARN_BASE_PER_VP) / 1e6
+    ro_inc = (f_ro_pts * RO_POINT_VALUE) / 1e6
+    pb_inc = (f_pb_vp * EARN_BASE_PER_VP) / 1e6
     total_inc = retail_inc + wholesale_inc + ro_inc + pb_inc
 
     data_records.append({
@@ -152,9 +152,9 @@ for M in range(1, selected_month + 1):
         "TỔNG": total_inc
     })
 
-# --- 5. RENDER BẢNG HTML XÓA THỤT LỀ ---
+# --- 5. RENDER BẢNG HTML CHỐNG SỌC VÀ CỐ ĐỊNH TIÊU ĐỀ ---
 if pres_completed_month:
-    st.success(f"🎯 **ĐẠT CHUẨN:** Hoàn thành **Nhóm Chủ Tịch (President's Team)** vào **Tháng thứ {pres_completed_month}**[cite: 1]!")
+    st.success(f"🎯 **ĐẠT CHUẨN:** Hoàn thành **Nhóm Chủ Tịch (President's Team)** vào **Tháng thứ {pres_completed_month}**!")
 
 col1, col2, col3, col4 = st.columns(4)
 last = data_records[-1]
